@@ -39,13 +39,13 @@ def simulate_gbm(S0, mu, sigma, T, dt, seed=None):
     if sigma < 0:
         raise ValueError("sigma must be non-negative")
     if T <= 0 or dt <= 0:
-        raise ValueError("T and dt must be positive"
+        raise ValueError("T and dt must be positive")
     # For S0 Why? GBM assumes positive values (log-normal process)   If S0 ≤ 0: math breaks, log undefined
     # For sigma Volatility = standard deviation   Cannot be negative (physics + statistics)
     # For T Time must move forward        Negative or zero time step = nonsense physically
     # Random seed
     if seed is not None:
-    np.random.seed(seed)
+        np.random.seed(seed)
     # Why? Makes simulation reproducible 
     # Without seed: every run → different result, With seed: same input → same output
     # This is CRITICAL for: testing, debugging, scientific reproducibility
@@ -58,15 +58,19 @@ def simulate_gbm(S0, mu, sigma, T, dt, seed=None):
     # Why empty instead of zeros? empty = faster (does NOT initialize values)
     # In this code prices[0] = S0 You must initialize manually
     # Performance: zeros → safer but slower   empty → faster but requires care
+    # Instead of You were doing randomness with loop and one by one Now: You generate all randomness at once
+    # Physics meaning: This is your discrete version of: dWt ∼ N(0,dt)
     # Vectorized random shocks
     shocks = np.random.normal(0, 1, size=steps) * np.sqrt(dt)
-    # Instead of You were doing randomness with loop and one by one Now: You generate all randomness at once 
-    # Physics meaning: This is your discrete version of: dWt ∼ N(0,dt)
+
     # Simulation loop
     for t in range(1, steps + 1):
-    prices[t] = prices[t - 1] * np.exp(
-    (mu - 0.5 * sigma**2) * dt + sigma * shocks[t - 1]
-)
+        prices[t] = prices[t - 1] * np.exp(
+            (mu - 0.5 * sigma**2) * dt + sigma * shocks[t - 1]
+        )
+
+    # Return
+    return prices 
 # engine that generates the step-by-step evolution of the system over time
 # The loop iterates through each time step (from 1 to steps). In each iteration, 
 # it calculates the next value of the system (prices[t]) based on the previous value (prices[t-1]) and a random "shock."
@@ -74,6 +78,4 @@ def simulate_gbm(S0, mu, sigma, T, dt, seed=None):
 # Physical interpretation: Because randomness is multiplicative: mean behavior shifts
 # Stochastic term sigma * shocks[t - 1] This is the random shock that adds variability to the path. shocks ~ N(0, dt), scaled by volatility
 # Why exponential term? GBM is a multiplicative process: S(t) = S(0) * exp(...) This ensures positivity and captures compounding effects
-# Return
-return prices
 # Output: type: np.ndarray  shape: (steps + 1,)
