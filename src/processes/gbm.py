@@ -1,5 +1,8 @@
 # import
 import numpy as np
+from src.utils.logger import setup_logger
+
+logger = setup_logger()
 # We use NumPy for: random numbers, arrays,  math functions
 
 # Function definition
@@ -33,6 +36,9 @@ def simulate_gbm(S0, mu, sigma, T, dt, seed=None):
     np.ndarray
         Simulated GBM path
     """
+
+    logger.info("Starting GBM simulation")
+
     #Input validation
     if S0 <= 0:
         raise ValueError("S0 must be positive")
@@ -40,6 +46,8 @@ def simulate_gbm(S0, mu, sigma, T, dt, seed=None):
         raise ValueError("sigma must be non-negative")
     if T <= 0 or dt <= 0:
         raise ValueError("T and dt must be positive")
+    
+    logger.info(f"S0={S0}, mu={mu}, sigma={sigma}, T={T}, dt={dt}")
     # For S0 Why? GBM assumes positive values (log-normal process)   If S0 ≤ 0: math breaks, log undefined
     # For sigma Volatility = standard deviation   Cannot be negative (physics + statistics)
     # For T Time must move forward        Negative or zero time step = nonsense physically
@@ -69,6 +77,8 @@ def simulate_gbm(S0, mu, sigma, T, dt, seed=None):
             (mu - 0.5 * sigma**2) * dt + sigma * shocks[t - 1]
         )
 
+    
+    logger.info("Simulation completed")
     # Return
     return prices 
 # engine that generates the step-by-step evolution of the system over time
